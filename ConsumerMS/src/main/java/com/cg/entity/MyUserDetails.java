@@ -1,4 +1,4 @@
-package com.cg.dto;
+package com.cg.entity;
 
 import java.util.Arrays;
 import java.util.Collection;

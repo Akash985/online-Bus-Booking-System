@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.cg.dto.Booking;
-import com.cg.dto.BookingDetails;
-import com.cg.dto.Bus;
-import com.cg.dto.BusInfo;
-import com.cg.dto.Passenger;
-import com.cg.dto.Route;
+import com.cg.entity.Booking;
+import com.cg.entity.BookingDetails;
+import com.cg.entity.Bus;
+import com.cg.entity.BusInfo;
+import com.cg.entity.Passenger;
+import com.cg.entity.Route;
 import com.cg.exception.BookingIdNotFoundException;
 import com.cg.exception.BookingIsAlreadyRejectedException;
 import com.cg.service.ConsumerService;

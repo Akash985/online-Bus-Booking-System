@@ -7,9 +7,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.cg.dto.Booking;
-import com.cg.dto.BookingDetails;
-import com.cg.dto.Passenger;
+import com.cg.entity.Booking;
+import com.cg.entity.BookingDetails;
+import com.cg.entity.Passenger;
 import com.cg.exception.BookingIdNotFoundException;
 
 @Service

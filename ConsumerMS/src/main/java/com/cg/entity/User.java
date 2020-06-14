@@ -1,4 +1,4 @@
-package com.cg.dto;
+package com.cg.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

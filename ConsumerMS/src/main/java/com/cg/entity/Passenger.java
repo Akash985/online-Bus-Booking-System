@@ -1,4 +1,4 @@
-package com.cg.dto;
+package com.cg.entity;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
