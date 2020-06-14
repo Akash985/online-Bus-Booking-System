@@ -1,22 +1,44 @@
 package com.cg.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 
 public class Passenger {
 	
 	
 	private Long passengerId;
 	private Long bookingId;
+	
+	@NotNull(message="bus Id is Mandatory")
+	@Positive(message="bus Id should be positive")
 	private Long busId;
+
+	@NotEmpty(message="passenger Name cannot be missing or empty")
+	@Size(max=25,message = "Maximum allowed length of passenger Name is 25 ")
 	private String passengerName;
+	
+
+	@NotEmpty(message="gender cannot be missing or empty")
+	@Size(max=1,message = "Maximum allowed length of gender is 1 ")
 	private String gender;
+	
+
+	@NotNull(message="age cannot be missing or empty")
+	@Min(value=1, message="age can't be less than 1")
+	@Max(value=60,message="age can't be more than 100")
+	@Positive(message="age cannot be negative")
 	private Integer age;
+	
+	@NotNull(message="seat No be missing or empty")
+	@Min(value=1, message="seat No can't be less than 1")
+	@Max(value=60,message="seat No  can't be more than 100")
+	@Positive(message="seat No  cannot be negative")
 	private Integer seatNo;
+	
 	private String bookingStatus;
 	public Passenger() {
 		super();

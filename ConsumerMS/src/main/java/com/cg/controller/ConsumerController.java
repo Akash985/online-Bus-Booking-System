@@ -1,13 +1,13 @@
 package com.cg.controller;
 
 import java.net.ConnectException;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
+import javax.validation.Validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.cg.dto.Booking;
@@ -100,7 +99,6 @@ public class ConsumerController {
 	
 	
 
-//  http://localhost:9095/consumerCtrl/createBooking
 	@PostMapping(value ="/createBooking",consumes = MediaType.APPLICATION_JSON_VALUE,
 	headers="Accept=application/json",produces=MediaType.APPLICATION_JSON_VALUE)
 	@HystrixCommand(fallbackMethod = "WhenBookingMsFails")
@@ -109,14 +107,14 @@ public class ConsumerController {
 		Booking booking = new Booking(bookingDetails.getUserId(), bookingDetails.getBusId(), bookingDetails.getRouteId(), 
 								bookingDetails.getNoOfSeats(), bookingDetails.getBookingAmount(),
 								bookingDetails.getBookingStatus(), new Date());
-		
+
 		Booking bkConfirm=restTemplet.postForObject("http://booking-service/bookingCtrl/create",booking, Booking.class);
-//		System.out.println(bkConfirm);
+		
 		
 		List<Passenger> pssgnList=null;
-		if(bkConfirm!=null) {
+		
 			
-			for (Passenger pssgn : bookingDetails.getPssgnList()) {
+			for ( @Valid Passenger pssgn : bookingDetails.getPssgnList()) {
 				pssgn.setBookingId(bkConfirm.getBookingId());
 			}
 			
@@ -124,92 +122,74 @@ public class ConsumerController {
 			try {
 				pssgnList = restTemplet.postForObject("http://passenger-service/passengerCtrl/create", bookingDetails.getPssgnList(), List.class);
 			} catch (Exception e) {
+				System.out.println(e.getMessage());
 				//rollback
 				restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bkConfirm.getBookingId(), HttpMethod.PUT,null, Booking.class);
 				bkConfirm =restTemplet.getForObject("http://booking-service/bookingCtrl/fetch/bokId="+bkConfirm.getBookingId(),Booking.class);
-				
+				BookingDetails completeBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(bkConfirm, pssgnList);					
+				return new ResponseEntity("Passenger service down-->"+completeBookingDetails.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
 			}
-			
-			BookingDetails completeBookingDetails = new BookingDetails(bkConfirm.getBookingId(), bkConfirm.getUserId(),
-														bkConfirm.getBusId(),bkConfirm.getRouteId(), bkConfirm.getBookingAmount(), bkConfirm.getNoOfSeats(),
-														bkConfirm.getBookingStatus(),bkConfirm.getDateOfBooking(), pssgnList);
+			BookingDetails completeBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(bkConfirm, pssgnList);			
 			
 			return new ResponseEntity(completeBookingDetails,HttpStatus.OK);
-		}else {
-			return null;
-		}
-		
 	}
+	
+	
 	
 //	http://localhost:9095/consumerCtrl/bookingHistory/userId=10001
 	@GetMapping("/bookingHistory/userId={uId}")
 	@HystrixCommand(fallbackMethod = "WhenBookingHistoryFails")
-	ResponseEntity getBookingHistoryByUserId(@PathVariable("uId")Long userId) {
-		
-		
+	ResponseEntity getBookingHistoryByUserId(@PathVariable("uId")Long userId) {			
 		Booking[] bookingArray = restTemplet.getForObject( "http://booking-service/bookingCtrl/fetchBookings/userId="+userId,Booking[].class);//consumerService.getBusBookingById(userId);
 		List<Booking> bookingList=Arrays.asList(bookingArray);
-		//withot passenger
-//		List<Passenger> pssgnList = null;
-//		Passenger[] pssgnArray = null;
-//		List<BookingDetails> bookingDetailsList = new ArrayList<BookingDetails>();
-//		for (Booking booking : bookingList) {
-//			pssgnArray = restTemplet.getForObject("http://passenger-service/passengerCtrl/fetchPassenger/bId="+booking.getBookingId(),Passenger[].class);
-//		    pssgnList=Arrays.asList(pssgnArray);
-//			System.out.println(pssgnList);
-//			bookingDetailsList.add(consumerService.stubBookingAndPassengerListInBookingDetails(booking, pssgnList));			
-//		}
-//		Long j=0l;
-//		for (int i = 0; i < bookingList.size(); i++) {
-//			j=bookingList.get(i).getBookingId();
-//			pssgnArray = restTemplet.getForObject("http://passenger-service/passengerCtrl/fetchPassenger/bId="+j,Passenger[].class);
-//		    pssgnList=Arrays.asList(pssgnArray);
-//			System.out.println(pssgnList);
-//		bookingDetailsList.add(consumerService.stubBookingAndPassengerListInBookingDetails(bookingList.get(i), pssgnList));
-//			
-//		}
 		return new ResponseEntity(bookingList,HttpStatus.OK);		
 	}
+	
+	
+	//for user
+//	http://localhost:9095/consumerCtrl/bookingDetails/userId={uId}/bookId={bkId}
+	@GetMapping("/bookingDetails/userId={uId}/bookId={bkId}")
+	@HystrixCommand(ignoreExceptions = {BookingIdNotFoundException.class},fallbackMethod = "WhenGetBookingFails")
+	ResponseEntity getBookingDetailsByUserIdAndBookingId(@PathVariable("uId")Long userId,@PathVariable("bkId")Long bookingId) throws BookingIdNotFoundException {			
+
+		
+		BookingDetails bookingDetails = consumerService.stubBookingAndPassengerListInBookingDetails(
+												consumerService.getBusBookingByUserIdAndBookingId(userId, bookingId), 
+												consumerService.getPassengerListByBookingId(bookingId));
+		return new ResponseEntity(bookingDetails,HttpStatus.OK);		
+	}
+	
 	
 	
 	
 	
 //	For Canceling Using update instead of delete 
-	@PutMapping(value ="/cancelBooking",consumes = MediaType.APPLICATION_JSON_VALUE,
+	@PutMapping(value ="/cancelBooking/userId={uId}/bookId={bkId}",
 			headers="Accept=application/json",produces=MediaType.APPLICATION_JSON_VALUE)
-//	@HystrixCommand(fallbackMethod="BookingIdNotFounHandler")	
-	ResponseEntity cancelBookingByUserIdAndBookingId(@RequestBody Long[] obj) throws BookingIdNotFoundException, BookingIsAlreadyRejectedException {
+	@HystrixCommand(ignoreExceptions = {BookingIdNotFoundException.class,BookingIsAlreadyRejectedException.class},fallbackMethod="BookingIdNotFounHandlerWhileCancelling")	
+	ResponseEntity cancelBookingByUserIdAndBookingId(@PathVariable("uId")Long userId,@PathVariable("bkId")Long bookingId) throws BookingIdNotFoundException, BookingIsAlreadyRejectedException {
 		List<Passenger> pssgnList = null;
-		Long userId= obj[0];
-		Long bookingId = obj[1];
-		System.out.println(userId+"  bbb "+bookingId);
-		//chech boking id is of given userid or not
+
 		Booking booking = consumerService.getBusBookingByUserIdAndBookingId(userId, bookingId);
-		System.out.println(booking);
 		if(booking.getBookingStatus().equals("Rejected")) {
 			throw new BookingIsAlreadyRejectedException("This booking Id is already Rejected");
 		}
 
 		System.out.println("inside else");
-		Booking cancelBk= restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bookingId, HttpMethod.PUT,null, Booking.class).getBody();
+		Booking cancelledBooking= consumerService.cancelBookingByBookingId(bookingId);// restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bookingId, HttpMethod.PUT,null, Booking.class).getBody();
 		
 		try {
-			pssgnList = restTemplet.exchange("http://passenger-service/passengerCtrl/cancelPassenger/bkId="+bookingId, HttpMethod.PUT,null, List.class).getBody();
-			System.out.println(pssgnList);
+			pssgnList = consumerService.updateBookingStatusToRejectedForPassengerByBookingId(bookingId);//restTemplet.exchange("http://passenger-service/passengerCtrl/cancelPassenger/bkId="+bookingId, HttpMethod.PUT,null, List.class).getBody();
 		
-//				pssgnList = restTemplet.postForObject("http://passenger-service/passengerCtrl/create", bookingDetails.getPssgnList(), List.class);
 		} catch (Exception e) {
 			//rollback
 			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
-			cancelBk =restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToAccepted/bkId="+cancelBk.getBookingId(), HttpMethod.PUT,null, Booking.class).getBody();
-//				cancelBk =restTemplet.getForObject("http://booking-service/bookingCtrl/fetch/bokId="+bkConfirm.getBookingId(),Booking.class);
-			
+			Booking reacceptedBooking =consumerService.acceptBookingByBookingId(bookingId);//restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToAccepted/bkId="+cancelledBooking.getBookingId(), HttpMethod.PUT,null, Booking.class).getBody();
+			BookingDetails cancelledBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(reacceptedBooking, pssgnList);
+			return new ResponseEntity("Passenger service is down therefore cancellation cannot be done"+cancelledBookingDetails.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
-		BookingDetails cancelledBookingDetails = new BookingDetails(cancelBk.getBookingId(), cancelBk.getUserId(),
-				cancelBk.getBusId(),cancelBk.getRouteId(), cancelBk.getBookingAmount(), cancelBk.getNoOfSeats(),
-				cancelBk.getBookingStatus(),cancelBk.getDateOfBooking(), pssgnList);
+
+		BookingDetails cancelledBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(cancelledBooking, pssgnList);
 
 		return new ResponseEntity(cancelledBookingDetails,HttpStatus.OK);
 
@@ -229,7 +209,7 @@ public class ConsumerController {
 
 	public ResponseEntity WhenBookingMsFails(BookingDetails bookingDetails)
 	{
-		return new ResponseEntity("Booking Service is Temporarily down ", HttpStatus.NOT_FOUND);
+		return new ResponseEntity("Booking Service is Temporarily down ", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	public ResponseEntity WhenBusorRouteServiceIsDown(String source,String destination,String date) {
@@ -239,11 +219,19 @@ public class ConsumerController {
 	
 	public ResponseEntity WhenBookingHistoryFails(Long userId)
 	{
-		return new ResponseEntity("Booking History is Temporarily down ", HttpStatus.NOT_FOUND);
+		return new ResponseEntity("Booking History is Temporarily down ", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	public ResponseEntity BookingIdNotFounHandlerWhileCancelling(Long userId,Long bookingId)
+	{
+		return new ResponseEntity("Booking Server is down so cancellation is denied ", HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	
 	
-	
+	public ResponseEntity WhenGetBookingFails(Long userId,Long bookingId)
+	{
+		return new ResponseEntity("Booking Server is down so cancellation is denied ", HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 	
 }

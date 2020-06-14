@@ -3,23 +3,49 @@ package com.cg.dto;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 public class BookingDetails {	
 	
 	private Long bookingId;//not used when send data from UI to MS instead it is used only when data comes from MSto Ui
-	@NotNull(message="booking Id cannot be missing or empty")
-//	@Size(min=2,max=5,message = "booking Id Should be minimum of 2 digit and max of 5 digit")
-	@Positive(message="booking Id cannot be negative")
+	
+	@NotNull(message="user Id cannot be missing or empty")
+	@Positive(message="user Id cannot be negative")
 	private Long userId;
+	
+	@NotNull(message="bus Id is Mandatory")
+	@Positive(message="bus Id should be positive")
 	private Long busId;
+	
+	@NotNull(message="route Id is Mandatory")
+	@Positive(message="route Id should be positive")
 	private Long routeId;
+	
+	@NotNull(message="Booking amount is Mandatory")
+	@Positive(message="Booking Amount should be positive")
 	private Double bookingAmount;
+	
+	@NotNull(message="bus Id is Mandatory")
+	@Positive(message="bus Id should be positive")
+	@Min(value=1, message="bus Id can't be less than 1")
+	@Max(value=15,message="Total seats can't be more than 15")
 	private Integer noOfSeats;
+	
+//
+//	@NotEmpty(message="bookingStatus cannot be missing or empty")
+//	@Size(max=9,message = "bookingStatus allowed length of age is 2")
 	private String bookingStatus;
+	
+	
 	private Date dateOfBooking;
-	private List<Passenger> pssgnList;
+	@NotNull(message="Minimum 1 passenger is required")
+	@NotEmpty(message="Minimum 1 passenger is required")
+	private List<@Valid Passenger> pssgnList;
 	
 	public BookingDetails() {
 		super();
@@ -92,6 +118,12 @@ public class BookingDetails {
 	}
 	public void setBookingStatus(String bookingStatus) {
 		this.bookingStatus = bookingStatus;
+	}
+	@Override
+	public String toString() {
+		return "BookingDetails [bookingId=" + bookingId + ", userId=" + userId + ", busId=" + busId + ", routeId="
+				+ routeId + ", bookingAmount=" + bookingAmount + ", noOfSeats=" + noOfSeats + ", bookingStatus="
+				+ bookingStatus + ", dateOfBooking=" + dateOfBooking + ", pssgnList=" + pssgnList + "]";
 	} 
 	
 	

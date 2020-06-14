@@ -8,6 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 @Entity
 @Table(name="Booking")
@@ -17,18 +19,37 @@ public class Booking {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name="booking_id")
 	private Long bookingId;
+	
 	@Column(name="user_id")
+	@NotNull(message="user Id cannot be missing or empty")
+	@Positive(message="user Id cannot be negative")
 	private Long userId;
+	
 	@Column(name="bus_id")
+	@NotNull(message="bus Id cannot be missing or empty")
+	@Positive(message="bus Id cannot be negative")	
 	private Long busId;
+	
 	@Column(name="route_id")
+	@NotNull(message="route Id cannot be missing or empty")
+	@Positive(message="route Id cannot be negative")
 	private Long routeId;
+	
 	@Column(name="no_of_seats")
+	@NotNull(message="no of seats cannot be missing or empty")
+	@Positive(message="no of seats cannot be negative")
 	private Integer noOfSeats;
+	
 	@Column(name="booking_amt")
+	@NotNull(message="booking amountcannot be missing or empty")
+	@Positive(message="booking amount cannot be negative")
 	private Double bookingAmount;
-	@Column(name="booking_status")
+	
+//	@Column(name="booking_status")
+//	@NotEmpty(message="bookingStatus cannot be missing or empty")
+//	@Size(max=9,message = "bookingStatus allowed length of age is 2")
 	private String  bookingStatus;
+	
 	@Column(name="date_of_booking")
 	private Date dateOfBooking;
 	

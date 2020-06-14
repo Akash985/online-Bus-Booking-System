@@ -1,25 +1,16 @@
 package com.cg.service;
 
-import java.net.ConnectException;
 import java.util.List;
-
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 import com.cg.dto.Booking;
 import com.cg.dto.BookingDetails;
 import com.cg.dto.Passenger;
 import com.cg.exception.BookingIdNotFoundException;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @Service
 public class ConsumerService {
@@ -65,7 +56,7 @@ public class ConsumerService {
 		
 //		http://localhost:9091/bookingCtrl/cancelPassenger/bkId= {bId}
 		public List<Passenger> updateBookingStatusToRejectedForPassengerByBookingId(Long bookingId){			
-			return restTemplate.exchange("http://passenger-service/bookingCtrl/cancelPassenger/bkId="+bookingId, HttpMethod.PUT,null,List.class).getBody();
+			return restTemplate.exchange("http://passenger-service/passengerCtrl/cancelPassenger/bkId="+bookingId, HttpMethod.PUT,null,List.class).getBody();
 		}
 		
 		public BookingDetails stubBookingAndPassengerListInBookingDetails(Booking booking,List<Passenger> pssgnList) {

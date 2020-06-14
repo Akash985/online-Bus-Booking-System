@@ -6,7 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -45,19 +46,19 @@ public class Passenger {
 	
 	@Column(name = "age")
 	@NotNull(message="age cannot be missing or empty")
-//	@Size(max=2,message = "Max allowed length of age is 2")
+	@Min(value=1, message="age should be more than 1")
+	@Max(value=90,message="age should be below 90")
 	@Positive(message="age cannot be negative")
 	private Integer age;
 	
 	@Column(name = "seat_no")
 	@NotNull(message="age cannot be missing or empty")
-//	@Size(max=2,message = "Max allowed length of age is 2")
+	@Min(value=1, message="seat no should be more than 1")
+	@Max(value=50,message="seat no should be below 50")
 	@Positive(message="age cannot be negative")	
 	private Integer seatNo;
 	
 	@Column(name = "booking_status")
-	@NotEmpty(message="bookingStatus cannot be missing or empty")
-	@Size(max=9,message = "bookingStatus allowed length of age is 2")
 	private String bookingStatus;
 	
 	public Passenger() {
