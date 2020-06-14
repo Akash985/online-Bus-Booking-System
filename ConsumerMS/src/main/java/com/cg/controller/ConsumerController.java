@@ -118,7 +118,6 @@ public class ConsumerController {
 			try {
 				pssgnList = restTemplate.postForObject("http://passenger-service/passengerCtrl/create", bookingDetails.getPssgnList(), List.class);
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
 				//rollback
 				restTemplate.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bkConfirm.getBookingId(), HttpMethod.PUT,null, Booking.class);
 				bkConfirm =restTemplate.getForObject("http://booking-service/bookingCtrl/fetch/bokId="+bkConfirm.getBookingId(),Booking.class);
@@ -176,7 +175,6 @@ public class ConsumerController {
 			pssgnList = consumerService.updateBookingStatusToRejectedForPassengerByBookingId(bookingId);
 		} catch (Exception e) {
 			//rollback
-			System.out.println(e.getMessage());
 			Booking reacceptedBooking =consumerService.acceptBookingByBookingId(bookingId);
 			BookingDetails cancelledBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(reacceptedBooking, pssgnList);
 			return new ResponseEntity("Passenger service is down therefore cancellation cannot be done"+cancelledBookingDetails.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
