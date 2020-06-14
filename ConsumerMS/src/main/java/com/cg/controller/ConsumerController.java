@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.Validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -39,13 +38,13 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 public class ConsumerController {
 
 	@Autowired
-	RestTemplate restTemplet;
+	RestTemplate restTemplate;
 	
 	@Autowired
 	ConsumerService consumerService;
 
-	public RestTemplate getRestTemplet() {
-		return restTemplet;
+	public RestTemplate getrestTemplate() {
+		return restTemplate;
 	}
 	
 	//------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,7 +54,7 @@ public class ConsumerController {
 	@GetMapping("/search/source={src}/destination={dst}/dateOfJrny={dt}")
 	@HystrixCommand(fallbackMethod = "WhenBusorRouteServiceIsDown")
 	ResponseEntity searchBus(@PathVariable("src")String source,@PathVariable("dst")String destination,@PathVariable("dt")String dateOfJourney) throws ConnectException{
-		Route[] routes=restTemplet.getForObject("http://route-service/routedetails/board="+source+"/drop="+destination,Route[].class);
+		Route[] routes=restTemplate.getForObject("http://route-service/routedetails/board="+source+"/drop="+destination,Route[].class);
 		List<Route> routeList=Arrays.asList(routes);
 		List<BusInfo> busInfoList=new ArrayList<>();
 		Route tempRoute=null;
@@ -71,20 +70,17 @@ public class ConsumerController {
 			
 			
 			busId=routeList.get(i).getBusId();
-			flag=restTemplet.getForObject("http://bus-scheduling-service/busdetails/checkAvailability/busId="+busId+"/dateOfJrny="+dateOfJourney,Boolean.class);
+			flag=restTemplate.getForObject("http://bus-scheduling-service/busdetails/checkAvailability/busId="+busId+"/dateOfJrny="+dateOfJourney,Boolean.class);
 			if(flag) {
 
-				tempBus=restTemplet.getForObject("http://bus-scheduling-service/busdetails/"+busId,Bus.class);
-//				tempRoute.getBoardingTime().
-				
-//				inject tempRoute and tempBus in TemBusInfo
+				tempBus=restTemplate.getForObject("http://bus-scheduling-service/busdetails/"+busId,Bus.class);
+
 				tempBusInfo= new BusInfo(tempRoute.getRouteId(), tempRoute.getBusId(), tempBus.getBusNo(), tempBus.getBusType(), 
 										tempBus.getBusName(), tempBus.getSource(), tempBus.getDestination(), tempBus.getTotalSeats(), 
 										tempBus.getAvailableSeats(), tempBus.getDateOfJourney(), tempBus.getStartPointTime(), 
 										tempRoute.getBoardingPoint(), tempRoute.getDroppingPoint(), tempRoute.getFare(),
 										tempRoute.getBoardingTime(), tempRoute.getTotaljourneyTime());
-				
-//				tempBusInfo.setBoardingtime(tempBus.getStartPointTime().set);
+			
 				busInfoList.add(tempBusInfo);
 				
 			}
@@ -108,7 +104,7 @@ public class ConsumerController {
 								bookingDetails.getNoOfSeats(), bookingDetails.getBookingAmount(),
 								bookingDetails.getBookingStatus(), new Date());
 
-		Booking bkConfirm=restTemplet.postForObject("http://booking-service/bookingCtrl/create",booking, Booking.class);
+		Booking bkConfirm=restTemplate.postForObject("http://booking-service/bookingCtrl/create",booking, Booking.class);
 		
 		
 		List<Passenger> pssgnList=null;
@@ -120,12 +116,12 @@ public class ConsumerController {
 			
 			//Use Passenger MS
 			try {
-				pssgnList = restTemplet.postForObject("http://passenger-service/passengerCtrl/create", bookingDetails.getPssgnList(), List.class);
+				pssgnList = restTemplate.postForObject("http://passenger-service/passengerCtrl/create", bookingDetails.getPssgnList(), List.class);
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 				//rollback
-				restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bkConfirm.getBookingId(), HttpMethod.PUT,null, Booking.class);
-				bkConfirm =restTemplet.getForObject("http://booking-service/bookingCtrl/fetch/bokId="+bkConfirm.getBookingId(),Booking.class);
+				restTemplate.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bkConfirm.getBookingId(), HttpMethod.PUT,null, Booking.class);
+				bkConfirm =restTemplate.getForObject("http://booking-service/bookingCtrl/fetch/bokId="+bkConfirm.getBookingId(),Booking.class);
 				BookingDetails completeBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(bkConfirm, pssgnList);					
 				return new ResponseEntity("Passenger service down-->"+completeBookingDetails.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
 			}
@@ -136,18 +132,16 @@ public class ConsumerController {
 	
 	
 	
-//	http://localhost:9095/consumerCtrl/bookingHistory/userId=10001
 	@GetMapping("/bookingHistory/userId={uId}")
 	@HystrixCommand(fallbackMethod = "WhenBookingHistoryFails")
 	ResponseEntity getBookingHistoryByUserId(@PathVariable("uId")Long userId) {			
-		Booking[] bookingArray = restTemplet.getForObject( "http://booking-service/bookingCtrl/fetchBookings/userId="+userId,Booking[].class);//consumerService.getBusBookingById(userId);
+		Booking[] bookingArray = restTemplate.getForObject( "http://booking-service/bookingCtrl/fetchBookings/userId="+userId,Booking[].class);//consumerService.getBusBookingById(userId);
 		List<Booking> bookingList=Arrays.asList(bookingArray);
 		return new ResponseEntity(bookingList,HttpStatus.OK);		
 	}
 	
 	
 	//for user
-//	http://localhost:9095/consumerCtrl/bookingDetails/userId={uId}/bookId={bkId}
 	@GetMapping("/bookingDetails/userId={uId}/bookId={bkId}")
 	@HystrixCommand(ignoreExceptions = {BookingIdNotFoundException.class},fallbackMethod = "WhenGetBookingFails")
 	ResponseEntity getBookingDetailsByUserIdAndBookingId(@PathVariable("uId")Long userId,@PathVariable("bkId")Long bookingId) throws BookingIdNotFoundException {			
@@ -176,15 +170,14 @@ public class ConsumerController {
 		}
 
 		System.out.println("inside else");
-		Booking cancelledBooking= consumerService.cancelBookingByBookingId(bookingId);// restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToCancel/bkId="+bookingId, HttpMethod.PUT,null, Booking.class).getBody();
+		Booking cancelledBooking= consumerService.cancelBookingByBookingId(bookingId);
 		
 		try {
-			pssgnList = consumerService.updateBookingStatusToRejectedForPassengerByBookingId(bookingId);//restTemplet.exchange("http://passenger-service/passengerCtrl/cancelPassenger/bkId="+bookingId, HttpMethod.PUT,null, List.class).getBody();
-		
+			pssgnList = consumerService.updateBookingStatusToRejectedForPassengerByBookingId(bookingId);
 		} catch (Exception e) {
 			//rollback
 			System.out.println(e.getMessage());
-			Booking reacceptedBooking =consumerService.acceptBookingByBookingId(bookingId);//restTemplet.exchange("http://booking-service/bookingCtrl/updateBookingToAccepted/bkId="+cancelledBooking.getBookingId(), HttpMethod.PUT,null, Booking.class).getBody();
+			Booking reacceptedBooking =consumerService.acceptBookingByBookingId(bookingId);
 			BookingDetails cancelledBookingDetails =consumerService.stubBookingAndPassengerListInBookingDetails(reacceptedBooking, pssgnList);
 			return new ResponseEntity("Passenger service is down therefore cancellation cannot be done"+cancelledBookingDetails.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
 		}
