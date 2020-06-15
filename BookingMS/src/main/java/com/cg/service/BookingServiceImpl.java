@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.entity.Booking;
 import com.cg.exception.BookingIdNotFoundException;
+import com.cg.exception.UserHasNoBookingException;
 import com.cg.repository.BookingRepository;
 
 @Service
@@ -31,14 +32,17 @@ public class BookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public List<Booking> getAllBookingByUserId(Long userId) {
-		return bookingRepo.findAllByUserId(userId); // MP
+	public List<Booking> getAllBookingByUserId(Long userId) throws UserHasNoBookingException {
+		List<Booking> bookinList = bookingRepo.findAllByUserId(userId);
+		if(bookinList.isEmpty()) {
+			throw new UserHasNoBookingException("No booking found For given UserId");
+		}
+		return bookinList; // MP
 	}
 
 	@Override
 	public Booking getBookingByBookingID(Long bookingId) throws BookingIdNotFoundException {
 		Booking booking = bookingRepo.findById(bookingId).orElse(null);//orElse will return null if the value is not present
-		System.out.println(booking);
 		if (booking == null) {
 			throw new BookingIdNotFoundException("Booking Id Not Found");
 		} else {
@@ -47,15 +51,18 @@ public class BookingServiceImpl implements BookingService {
 	}
 
 	@Override
-	public Booking getAllBookingByUserIdAndBookingId(Long userId, Long bookingId) {
+	public Booking getAllBookingByUserIdAndBookingId(Long userId, Long bookingId) throws BookingIdNotFoundException {
 		Booking booking = bookingRepo.findByUserIdAndBookingId(userId, bookingId);
-		return booking;// bookingRepo.findAllByUserIdAndBookingId(userId, bookingId);
+		if(booking==null) {
+			throw new BookingIdNotFoundException("No booking found for given UserId");
+		}
+		return booking;
 	}
 	
 	
 	@Override
 	public Booking updateBookingByBookingId(Long bookingId, Booking booking) throws BookingIdNotFoundException {
-		Booking tempBooking = bookingRepo.findById(bookingId).get();
+		Booking tempBooking = bookingRepo.findById(bookingId).orElse( null);
 		if (tempBooking == null) {
 			throw new BookingIdNotFoundException("Booking Id Not Found");
 		} else {

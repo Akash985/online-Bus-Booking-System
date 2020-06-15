@@ -52,10 +52,10 @@ public class Booking {
 	
 	@Column(name="date_of_booking")
 	private Date dateOfBooking;
-	
 	public Booking() {
 		super();
 	}
+
 	public Booking(Long bookingId, Long userId, Long busId, Long routeId, Integer noOfSeats, Double bookingAmount,
 			String bookingStatus, Date dateOfBooking) {
 		super();

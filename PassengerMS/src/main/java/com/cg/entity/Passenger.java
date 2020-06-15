@@ -24,7 +24,6 @@ public class Passenger {
 	
 	@Column(name = "booking_id")
 	@NotNull(message="booking Id cannot be missing or empty")
-//	@Size(min=2,max=5,message = "booking Id Should be minimum of 2 digit and max of 5 digit")
 	@Positive(message="booking Id cannot be negative")
 	private Long bookingId;
 	

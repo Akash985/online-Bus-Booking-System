@@ -1,13 +1,10 @@
 package com.cg.service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.cg.dto.PassengerDto;
 import com.cg.entity.Passenger;
 import com.cg.exception.BookingIdNotFoundException;
 import com.cg.exception.PassengerNotFoundException;
@@ -24,7 +21,7 @@ public class PassengerServiceImpl implements PassengerService{
 		for (Passenger passenger : pssgnList) {
 			passenger.setBookingStatus("Accepted");
 		}
-		List<Passenger> savedPssgnList =passengerRepo.saveAll(pssgnList);		//MP
+		List<Passenger> savedPssgnList =passengerRepo.saveAll(pssgnList);		
 		return savedPssgnList;
 	}
 //	
@@ -83,16 +80,6 @@ public class PassengerServiceImpl implements PassengerService{
 		return passengerRepo.findAllByBusIdAndSeatNo(busId, seatNo);		//MP
 	}
 
-//	@Override
-//	public List<Passenger> updatePassengerDetailsByBookingId(Long bookingId, List<Passenger> pssgnList) {
-//		List<Passenger> pssgnListTemp =passengerRepo.findAllByBookingId(bookingId);
-//		for(int i=0;i<pssgnListTemp.size();i++) {
-//			pssgnListTemp.add(pssgnList.get(i));
-//		}
-//		passengerRepo.saveAll(pssgnListTemp);
-//		
-//		return null;
-//	}
 
 	@Override
 	public Passenger updatePassengerDetailByPassengerId(Long passengerId, Passenger pssgn) throws PassengerNotFoundException {
