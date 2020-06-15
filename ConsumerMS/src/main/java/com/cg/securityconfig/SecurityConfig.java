@@ -25,17 +25,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-//		http.csrf().disable().authorizeRequests()
-////				.antMatchers("/consumerCtrl/search/**").hasRole("USER")	
-//				.antMatchers("/consumerCtrl/createBooking").hasAnyRole("USER")										
-//				.antMatchers("/consumerCtrl/search/**").hasAnyRole("USER")
-//				.antMatchers("/").permitAll()
-//				.and().formLogin();
+
 		
 		 http.httpBasic().and().authorizeRequests()
 //		.antMatchers("/consumerCtrl/search/**").hasRole("USER")	
-		.antMatchers("/consumerCtrl/createBooking").hasAnyRole("USER")										
-		.antMatchers("/consumerCtrl/search/**").hasAnyRole("USER")
+		.antMatchers("/consumerCtrl/createBooking").hasAnyRole("USER")	
+		.antMatchers("/consumerCtrl/bookingHistory/**").hasAnyRole("USER")	
+		.antMatchers("/consumerCtrl/bookingDetails/**").hasAnyRole("USER")
+		.antMatchers("/consumerCtrl/cancelBooking/**").hasAnyRole("USER")
+		.antMatchers("/consumerCtrl/search/**").permitAll()
 		.antMatchers("/").permitAll()
 		   .and().csrf().disable().formLogin();
 		 

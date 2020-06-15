@@ -54,7 +54,7 @@ public class ConsumerController {
 	@GetMapping("/search/source={src}/destination={dst}/dateOfJrny={dt}")
 	@HystrixCommand(fallbackMethod = "WhenBusorRouteServiceIsDown")
 	ResponseEntity searchBus(@PathVariable("src")String source,@PathVariable("dst")String destination,@PathVariable("dt")String dateOfJourney) throws ConnectException{
-		Route[] routes=restTemplate.getForObject("http://route-service/routedetails/board="+source+"/drop="+destination,Route[].class);
+		Route[] routes=restTemplate.getForObject("http://route-service/route/routedetails/board="+source+"/drop="+destination,Route[].class);
 		List<Route> routeList=Arrays.asList(routes);
 		List<BusInfo> busInfoList=new ArrayList<>();
 		Route tempRoute=null;
@@ -70,16 +70,15 @@ public class ConsumerController {
 			
 			
 			busId=routeList.get(i).getBusId();
-			flag=restTemplate.getForObject("http://bus-scheduling-service/busdetails/checkAvailability/busId="+busId+"/dateOfJrny="+dateOfJourney,Boolean.class);
+			flag=restTemplate.getForObject("http://bus-service/bus/busdetails/checkAvailability/busId="+busId+"/dateOfJrny="+dateOfJourney,Boolean.class);
 			if(flag) {
 
-				tempBus=restTemplate.getForObject("http://bus-scheduling-service/busdetails/"+busId,Bus.class);
+				tempBus=restTemplate.getForObject("http://bus-service/bus/busdetails/"+busId,Bus.class);
 
 				tempBusInfo= new BusInfo(tempRoute.getRouteId(), tempRoute.getBusId(), tempBus.getBusNo(), tempBus.getBusType(), 
 										tempBus.getBusName(), tempBus.getSource(), tempBus.getDestination(), tempBus.getTotalSeats(), 
 										tempBus.getAvailableSeats(), tempBus.getDateOfJourney(), tempBus.getStartPointTime(), 
-										tempRoute.getBoardingPoint(), tempRoute.getDroppingPoint(), tempRoute.getFare(),
-										tempRoute.getBoardingTime(), tempRoute.getTotaljourneyTime());
+										tempRoute.getBoardingPoint(), tempRoute.getDroppingPoint(), tempRoute.getFare());
 			
 				busInfoList.add(tempBusInfo);
 				

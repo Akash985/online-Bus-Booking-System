@@ -3,6 +3,7 @@ package com.cg.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.RollbackException;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,8 @@ public class PassengerController {
 
 	@PostMapping(value ="/create",consumes = MediaType.APPLICATION_JSON_VALUE,
 	headers="Accept=application/json",produces=MediaType.APPLICATION_JSON_VALUE)
-	ResponseEntity<List<Passenger>> createPassengers(@Valid @RequestBody List<Passenger> pssg){		
-		return new ResponseEntity<List<Passenger>>(passengerService.addNewPassengerDetails(pssg),HttpStatus.OK);
+	ResponseEntity<List<Passenger>> createPassengers(@Valid @RequestBody List<@Valid Passenger> pssg){	
+		return new ResponseEntity<List<Passenger>>(passengerService.addNewPassengerDetails(pssg),HttpStatus.OK); 
 	}
 	
 
@@ -46,7 +47,6 @@ public class PassengerController {
 	
 
 	@GetMapping(value = "/fetchPassenger/bId={bkId}", produces=MediaType.APPLICATION_JSON_VALUE)
-	@HystrixCommand(fallbackMethod="whenBookingIdNotFound")
 	ResponseEntity<List<Passenger>> fetchPassengerDetailsByBookingId(@PathVariable("bkId")Long bId) throws BookingIdNotFoundException{
 		List<Passenger> pssgnList =  passengerService.getPassengerDetailsByBookingID(bId);
 		return new ResponseEntity<List<Passenger>>(pssgnList,HttpStatus.OK);//instead of givin empty list in fallmethod return message
@@ -54,7 +54,6 @@ public class PassengerController {
 	
 
 	@GetMapping(value = "/fetchPassenger/pssgnNo={pNo}", produces=MediaType.APPLICATION_JSON_VALUE)
-	@HystrixCommand(fallbackMethod = "whenPassengerIdNotFound")
 	ResponseEntity<Passenger> fetchPassengerDetailsByPassengerId(@PathVariable("pNo")Long pNo) throws PassengerNotFoundException{
 		Passenger pssgn=passengerService.getPassengerDetailByPassengerId(pNo);
 		return new ResponseEntity<Passenger>(pssgn,HttpStatus.OK);
@@ -64,7 +63,6 @@ public class PassengerController {
 
 	@PutMapping(value ="/cancelPassenger/bkId={bId}",
 			headers="Accept=application/json",produces=MediaType.APPLICATION_JSON_VALUE)
-	@HystrixCommand(fallbackMethod="whenBookingIdNotFound")
 	ResponseEntity<List<Passenger>> cancelPassengerlistBookingsByBookingId(@PathVariable("bId")Long bookId) throws BookingIdNotFoundException{
 		List<Passenger> cancelledPssgnList =passengerService.updatePassengerBookingStatusToRejectedByBookingID(bookId);
 		return  new ResponseEntity<List<Passenger>>(cancelledPssgnList,HttpStatus.OK);
@@ -75,27 +73,6 @@ public class PassengerController {
 
 	
 	
-//	-------------------------------------------------------------------------------------------------------------------------------------------------------
-//	-----------------------------------------------------Fall Back methods---------------------------------------------------------------------------------
-	
-	public  ResponseEntity<List<Passenger>> whenBookingIdNotFound(Long bId)
-	{
-		List<Passenger> pssgList = new ArrayList<Passenger>();
-		return new ResponseEntity<List<Passenger>>(pssgList, HttpStatus.NOT_FOUND);
-	}
-	
-	
-	public  ResponseEntity<Passenger> whenPassengerIdNotFound(Long bId)
-	{
-		Passenger pssgn = new Passenger(0l,0l,0l,null,null,null,null,null);
-		return new ResponseEntity<Passenger>(pssgn, HttpStatus.NOT_FOUND);
-	}
-	
-	
-	public  ResponseEntity<List<Passenger>> whenPassengerNameNotFound(String pName)
-	{
-		List<Passenger> pssgList = new ArrayList<Passenger>();
-		return new ResponseEntity<List<Passenger>>(pssgList, HttpStatus.NOT_FOUND);
-	}
-	
+
+
 }

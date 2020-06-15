@@ -20,14 +20,15 @@ public class BusInfo {
 	private String boardingPoint;
 	private String droppindPoint;
 	private double fare;
-	private Time boardingTime;
-	private Time totalJourneyTime;
 	public BusInfo() {
 		super();
 	}
+	
+	
+	
 	public BusInfo(Long routeId, Long busId, String busNo, String busType, String busName, String source,
 			String destination, Integer totalSeats, Integer availableSeats, Date dateOfJourney, Time startPointTime,
-			String boardingPoint, String droppindPoint, double fare, Time boardingTime, Time totalJourneyTime) {
+			String boardingPoint, String droppindPoint, double fare) {
 		super();
 		this.routeId = routeId;
 		this.busId = busId;
@@ -43,9 +44,10 @@ public class BusInfo {
 		this.boardingPoint = boardingPoint;
 		this.droppindPoint = droppindPoint;
 		this.fare = fare;
-		this.boardingTime = boardingTime;
-		this.totalJourneyTime = totalJourneyTime;
 	}
+
+
+
 	public Long getRouteId() {
 		return routeId;
 	}
@@ -130,28 +132,6 @@ public class BusInfo {
 	public void setFare(double fare) {
 		this.fare = fare;
 	}
-	public Time getBoardingTime() {
-		return boardingTime;
-	}
-	public void setBoardingTime(Time boardingTime) {
-		this.boardingTime = boardingTime;
-	}
-	public Time getTotalJourneyTime() {
-		return totalJourneyTime;
-	}
-	public void setTotalJourneyTime(Time totalJourneyTime) {
-		this.totalJourneyTime = totalJourneyTime;
-	}
-	@Override
-	public String toString() {
-		return "BusInfo [routeId=" + routeId + ", busId=" + busId + ", busNo=" + busNo + ", busType=" + busType
-				+ ", busName=" + busName + ", source=" + source + ", destination=" + destination + ", totalSeats="
-				+ totalSeats + ", availableSeats=" + availableSeats + ", dateOfJourney=" + dateOfJourney
-				+ ", startPointTime=" + startPointTime + ", boardingPoint=" + boardingPoint + ", droppindPoint="
-				+ droppindPoint + ", fare=" + fare + ", boardingTime=" + boardingTime + ", totalJourneyTime="
-				+ totalJourneyTime + "]";
-	}
-	
 	
     
 }

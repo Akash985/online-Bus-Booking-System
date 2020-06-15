@@ -1,5 +1,6 @@
 package com.cg.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,8 @@ public class PassengerServiceImpl implements PassengerService{
 		List<Passenger> savedPssgnList =passengerRepo.saveAll(pssgnList);		
 		return savedPssgnList;
 	}
+	
+
 //	
 	
 	//read

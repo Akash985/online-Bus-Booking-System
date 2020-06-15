@@ -21,5 +21,10 @@ public class ExceptionController {
 	public ResponseEntity<String> handleBookingIsAlreadyRejectedException(BookingIsAlreadyRejectedException ex) {
 		return new ResponseEntity<>(ex.getMessage(),HttpStatus.NOT_FOUND);
 	}
+	
+	@ExceptionHandler
+	public ResponseEntity<String> handleNumberFormatException(NumberFormatException ex) {
+		return new ResponseEntity<>("You can enter only numeric value --> "+ex.getMessage()+"not a numeric value",HttpStatus.NOT_ACCEPTABLE);
+	}
 
 }
